@@ -6,6 +6,34 @@
 (function () {
   'use strict';
 
+  //addLoadEvent for use multiple functions window.onLoad
+  var addLoadEvent = function (func) {
+    var oldonload = window.onload;
+    if (typeof window.onload != 'function') {
+      window.onload = func;
+    } else {
+      window.onload = function () {
+        if (oldonload) {
+          oldonload();
+        }
+        func();
+      }
+    }
+  };
+
+  //specific log function
+  var log = function (message, type) {
+    if ($timing.loging) {
+      console[type || 'log'](message);
+      console.log('');
+    }
+  }
+
+  //specific log function
+  var getConsoleType = function (duration, linesOfCode) {
+    return 'info';
+  }
+
   // Establish the root object, `window` in the browser, or `exports` on the server.
   var root = this;
 
@@ -27,35 +55,39 @@
   // Current version.
   $timing.VERSION = '0.1';
 
-  $timing.mark = function (markerName) {
-    window.performance.mark(markerName);
+  $timing.mark = function (markerName, linesOfCode) {
+    root.performance.mark(markerName);
   };
 
   $timing.measure = function (resultName, markerFrom, markerTo) {
-    window.performance.measure(resultName, markerFrom, markerTo);
+    if (resultName && markerFrom && markerTo) {
+      root.performance.measure(resultName, markerFrom, markerTo);
+      return $timing.measure(resultName);
+    } else if (resultName) {
+      var output = root.performance.getEntriesByName(resultName);
+      output = output[output.length - 1];
+      log(output.name + ' = ' + output.duration, getConsoleType());
+      return output;
+    }
   };
 
-  $timing.result = function (name, log) {
-    log = log || false;
-    if (typeof name === 'string') {
-      var result = window.performance.getEntriesByName(name);
-      if (log) {
-        console.log(result);
-      }
-      return result;
-    } else if (Array.isArray(name)) {
-      var result = [];
-      name.forEach(function (measureName) {
-        result.push($timing.result(measureName));
+  $timing.resources = function () {
+    addLoadEvent(function () {
+      var output = root.performance.getEntriesByType('resource');
+      output.forEach(function (entry) {
+        log(entry.name + ' (' + entry.duration + ')');
       });
-      if (log) {
-        console.log(result);
-      }
-      return result;
-    } else {
+      return output;
+    });
+  };
 
-    }
 
+  $timing.navigation = function () {
+    addLoadEvent(function () {
+      var output = root.performance.timing;
+      log(output);
+      return output;
+    });
   };
 
   // amdefine
