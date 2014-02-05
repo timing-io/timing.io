@@ -34,6 +34,20 @@
     return 'info';
   }
 
+  var markId = (function() {
+    var id = 0;
+    return function() {
+      return id++;
+    };
+  })();
+
+  var measureId = (function() {
+    var id = 0;
+    return function() {
+      return id++;
+    };
+  })();
+
   // Establish the root object, `window` in the browser, or `exports` on the server.
   var root = this;
 
@@ -55,19 +69,33 @@
   // Current version.
   $timing.VERSION = '0.1';
 
-  $timing.mark = function (markerName, linesOfCode) {
-    root.performance.mark(markerName);
+  $timing.mark = function (markerName) {
+    if (markerName) {
+      $timing.lastMark = markerName;
+      root.performance.mark(markerName);
+    } else {
+      var markerName = 'marker' + markId();
+      $timing.lastMark = markerName;
+      root.performance.mark(markerName);
+    }
   };
 
   $timing.measure = function (resultName, markerFrom, markerTo) {
     if (resultName && markerFrom && markerTo) {
       root.performance.measure(resultName, markerFrom, markerTo);
       return $timing.measure(resultName);
+    } else if (resultName && markerFrom) {
+      var markerTo = 'marker' + markId();
+      $timing.mark(markerTo);
+      $timing.measure(resultName, markerFrom, markerTo)
     } else if (resultName) {
       var output = root.performance.getEntriesByName(resultName);
       output = output[output.length - 1];
       log(output.name + ' = ' + output.duration, getConsoleType());
       return output;
+    } else {
+      $timing.measure('measure' + markId(), $timing.lastMark);
+      delete $timing.lastMark;
     }
   };
 
