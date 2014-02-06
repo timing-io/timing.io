@@ -23,9 +23,8 @@
 
   //specific log function
   var log = function (message, type) {
-    if ($timing.loging) {
+    if ($timing.logging) {
       console[type || 'log'](message);
-      console.log('');
     }
   }
 
@@ -34,16 +33,16 @@
     return 'info';
   }
 
-  var markId = (function() {
-    var id = 0;
-    return function() {
+  var markId = (function () {
+    var id = 1;
+    return function () {
       return id++;
     };
   })();
 
-  var measureId = (function() {
-    var id = 0;
-    return function() {
+  var measureId = (function () {
+    var id = 1;
+    return function () {
       return id++;
     };
   })();
@@ -87,16 +86,30 @@
     } else if (resultName && markerFrom) {
       var markerTo = 'marker' + markId();
       $timing.mark(markerTo);
-      $timing.measure(resultName, markerFrom, markerTo)
+      return $timing.measure(resultName, markerFrom, markerTo);
     } else if (resultName) {
       var output = root.performance.getEntriesByName(resultName);
       output = output[output.length - 1];
       log(output.name + ' = ' + output.duration, getConsoleType());
       return output;
     } else {
-      $timing.measure('measure' + markId(), $timing.lastMark);
+      var output = $timing.measure('measure' + measureId(), $timing.lastMark);
       delete $timing.lastMark;
+      return output;
     }
+  };
+
+  $timing.versus = function () {
+    console.group(arguments[0]);
+
+    for (var i = 1; i < arguments.length; i++) {
+      $timing.mark('f'+i);
+      arguments[i]();
+      $timing.mark('ff'+i);
+      $timing.measure('Function #' + i, 'f'+i, 'ff'+i);
+    }
+
+    console.groupEnd();
   };
 
   $timing.resources = function () {
