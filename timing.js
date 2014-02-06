@@ -100,16 +100,19 @@
   };
 
   $timing.versus = function () {
-    console.group(arguments[0]);
+    var args = arguments;
+    setTimeout(function () {
+      console.group(args[0]);
 
-    for (var i = 1; i < arguments.length; i++) {
-      $timing.mark('f'+i);
-      arguments[i]();
-      $timing.mark('ff'+i);
-      $timing.measure('Function #' + i, 'f'+i, 'ff'+i);
-    }
+      for (var i = 1; i < args.length; i++) {
+        $timing.mark('f'+i);
+        args[i]();
+        $timing.mark('ff'+i);
+        $timing.measure('Function #' + i, 'f'+i, 'ff'+i);
+      }
 
-    console.groupEnd();
+      console.groupEnd();
+    }, 0);
   };
 
   $timing.resources = function () {
