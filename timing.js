@@ -101,12 +101,20 @@
 
   $timing.versus = function () {
     var args = arguments;
+    if (typeof args[args.length - 1] !== 'number') {
+      args[args.length] = 0;
+      args.length++;
+    }
+
     setTimeout(function () {
       console.group(args[0]);
 
-      for (var i = 1; i < args.length; i++) {
+      for (var i = 1; i < args.length - 1; i++) {
+        var iterations = args[args.length - 1];
         $timing.mark('f'+i);
-        args[i]();
+        while (iterations--) {
+          args[i]();
+        }
         $timing.mark('ff'+i);
         $timing.measure('Function #' + i, 'f'+i, 'ff'+i);
       }
