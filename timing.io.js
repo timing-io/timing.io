@@ -102,7 +102,7 @@
   $timing.versus = function () {
     var args = arguments;
     if (typeof args[args.length - 1] !== 'number') {
-      args[args.length] = 0;
+      args[args.length] = 1;
       args.length++;
     }
 
@@ -110,7 +110,7 @@
       console.group(args[0]);
 
       for (var i = 1; i < args.length - 1; i++) {
-        var iterations = args[args.length - 1];
+        var iterations = args[args.length - 1] - 1;
         $timing.mark('f'+i);
         while (iterations--) {
           args[i]();
